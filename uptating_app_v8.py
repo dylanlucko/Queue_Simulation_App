@@ -82,6 +82,12 @@ def mm1_queue_simulation(time, lambda_val, mu_val, s):
 
 # Define mm1_queue_simulation function here
 
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output, State
+import plotly.graph_objs as go
+import numpy as np
+
 app = dash.Dash(__name__)
 server = app.server
 
@@ -172,9 +178,9 @@ def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
         if line == 'wait_times':
             fig.add_trace(go.Scatter(x=list(range(len(wait_times))), y=wait_times, mode='lines', name='Wait Times'))
         elif line == 'total_times':
-            fig.add_trace(go.Scatter(x=list(range(len(total_times))), y=total_times, mode='lines', name='Total Times'))
+            fig.add_trace(go.Scatter(x=list(range(len(total_times))), y=total_times, mode='lines', name='Total Times', yaxis='y2'))  # Use yaxis='y2' for the secondary y-axis
         elif line == 'total_numbers':
-            fig.add_trace(go.Scatter(x=list(range(len(total_numbers))), y=total_numbers, mode='lines', name='Total Numbers'))
+            fig.add_trace(go.Scatter(x=list(range(len(total_numbers))), y=total_numbers, mode='lines', name='Total Numbers', yaxis='y2'))  # Use yaxis='y2' for the secondary y-axis
         elif line == 'queue_lengths':
             fig.add_trace(go.Scatter(x=list(range(len(queue_lengths))), y=queue_lengths, mode='lines', name='Queue Lengths'))
         elif line == 'server_utilization':
@@ -183,7 +189,7 @@ def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
     # Add a line for average queue length
     fig.add_trace(go.Scatter(x=[0, len(queue_lengths)-1], y=[avg_queue_length, avg_queue_length], mode='lines', name='Avg Queue Length', line=dict(color='orange', dash='dash')))
 
-    fig.update_layout(title='Simulation Results')
+    fig.update_layout(title='Simulation Results', yaxis=dict(title='Number of Customers', side='left'), yaxis2=dict(title='Total Times', overlaying='y', side='right'), legend=dict(x=0.01, y=0.99, bgcolor='rgba(255, 255, 255, 0.5)', bordercolor='rgba(0, 0, 0, 0.5)'), margin=dict(l=50, r=50, t=50, b=50))  # Define the layout for the secondary y-axis
     
     graph = dcc.Graph(figure=fig)
     return graph
@@ -230,5 +236,6 @@ def update_simulation_results(n_clicks, simulation_time, lambda_val, mu_val, s):
     ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8097)
+    app.run_server(debug=True, port=8099)
+
 # %%
