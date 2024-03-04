@@ -1,7 +1,4 @@
 
-
-
-
 #%%
 
 
@@ -78,13 +75,11 @@ def mm1_queue_simulation(time, lambda_val, mu_val, s):
     
     return wait_times, total_times, total_numbers, queue_lengths, server_utilization, avg_queue_length  # Return avg_queue_length
 
-# Define mm1_queue_simulation function here
-
 import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output, State
+from dash import dcc, html, Input, Output
 import plotly.graph_objs as go
-import numpy as np
+
+
 
 app = dash.Dash(__name__)
 server = app.server
@@ -144,6 +139,8 @@ app.layout = html.Div(style={'color': 'white'}, children=[
 def update_range_slider_max(simulation_time):
     return simulation_time
 
+
+
 @app.callback(
     Output("output-graph", "children"),
     [Input("run-button", "n_clicks")],
@@ -172,25 +169,35 @@ def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
     server_utilization = server_utilization[start_index:end_index]
 
     fig = go.Figure()
+    yaxis2_traces = []  # List to store traces associated with yaxis2
+
     for line in selected_lines:
         if line == 'wait_times':
             fig.add_trace(go.Scatter(x=list(range(len(wait_times))), y=wait_times, mode='lines', name='Wait Times'))
         elif line == 'total_times':
-            fig.add_trace(go.Scatter(x=list(range(len(total_times))), y=total_times, mode='lines', name='Total Times', yaxis='y2'))  # Use yaxis='y2' for the secondary y-axis
+            trace = go.Scatter(x=list(range(len(total_times))), y=total_times, mode='lines', name='Total Times', yaxis='y2')
+            yaxis2_traces.append(trace)
         elif line == 'total_numbers':
-            fig.add_trace(go.Scatter(x=list(range(len(total_numbers))), y=total_numbers, mode='lines', name='Total Numbers', yaxis='y2'))  # Use yaxis='y2' for the secondary y-axis
+            trace = go.Scatter(x=list(range(len(total_numbers))), y=total_numbers, mode='lines', name='Total Numbers', yaxis='y2')
+            yaxis2_traces.append(trace)
         elif line == 'queue_lengths':
             fig.add_trace(go.Scatter(x=list(range(len(queue_lengths))), y=queue_lengths, mode='lines', name='Queue Lengths'))
         elif line == 'server_utilization':
             fig.add_trace(go.Scatter(x=list(range(len(server_utilization))), y=server_utilization, mode='lines', name='Server Utilization'))
-    
+
+    # Add traces associated with yaxis2
+    for trace in yaxis2_traces:
+        fig.add_trace(trace)
+
     # Add a line for average queue length
     fig.add_trace(go.Scatter(x=[0, len(queue_lengths)-1], y=[avg_queue_length, avg_queue_length], mode='lines', name='Avg Queue Length', line=dict(color='orange', dash='dash')))
 
-    fig.update_layout(title='Simulation Results', yaxis=dict(title='Number of Customers', side='left'), yaxis2=dict(title='Total Times', overlaying='y', side='right'), legend=dict(x=0.01, y=0.99, bgcolor='rgba(255, 255, 255, 0.5)', bordercolor='rgba(0, 0, 0, 0.5)'), margin=dict(l=50, r=50, t=50, b=50))  # Define the layout for the secondary y-axis
-    
+    # Update layout to include a second y-axis
+    fig.update_layout(yaxis2=dict(title='Total Times and Total Numbers'))  # Set the title of yaxis2
+
     graph = dcc.Graph(figure=fig)
     return graph
+
 
 @app.callback(
     Output("simulation-results", "children"),
@@ -235,5 +242,4 @@ def update_simulation_results(n_clicks, simulation_time, lambda_val, mu_val, s):
 
 if __name__ == '__main__':
     app.run_server(debug=True, port=8096)
-
 # %%
