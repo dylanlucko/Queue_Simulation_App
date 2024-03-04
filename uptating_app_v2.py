@@ -1,7 +1,4 @@
 
-
-
-
 #%%
 
 
@@ -10,7 +7,7 @@ import simpy
 import numpy as np
 
 import dash
-from dash import dcc, html, Output, Input, State
+from dash import dcc, html, Output, Input
 import plotly.graph_objs as go
 
 
@@ -78,7 +75,11 @@ def mm1_queue_simulation(time, lambda_val, mu_val, s):
     
     return wait_times, total_times, total_numbers, queue_lengths, server_utilization, avg_queue_length  # Return avg_queue_length
 
-# Define mm1_queue_simulation function here
+import dash
+from dash import dcc, html, Input, Output
+import plotly.graph_objs as go
+
+
 
 app = dash.Dash(__name__)
 server = app.server
@@ -113,8 +114,8 @@ app.layout = html.Div(style={'color': 'white'}, children=[
         ),
     ]),
     html.Div(id="output-graph"),
-    html.Div(id="dropdown-container", children=[
-        dcc.Dropdown(
+    html.Div(id="checkboxes-container", children=[
+        dcc.Checklist(
             id='line-selection',
             options=[
                 {'label': 'Wait Times', 'value': 'wait_times'},
@@ -124,11 +125,10 @@ app.layout = html.Div(style={'color': 'white'}, children=[
                 {'label': 'Server Utilization', 'value': 'server_utilization'}
             ],
             value=['wait_times', 'total_times', 'total_numbers', 'queue_lengths', 'server_utilization'],
-            multi=True
+            labelStyle={'display': 'inline-block'}
         )
     ]),
     html.Button("Run Simulation", id="run-button", n_clicks=0),
-    html.Div(id="simulation-results")
 ])
 
 @app.callback(
@@ -140,17 +140,13 @@ def update_range_slider_max(simulation_time):
 
 @app.callback(
     Output("output-graph", "children"),
-    [Input("run-button", "n_clicks")],
-    [State("time-range", "value"),
-     State("lambda", "value"),
-     State("mu", "value"),
-     State("s", "value"),
-     State("line-selection", "value")]
+    [Input("time-range", "value"),
+     Input("lambda", "value"),
+     Input("mu", "value"),
+     Input("s", "value"),
+     Input("line-selection", "value")]
 )
-def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
-    if n_clicks == 0:
-        return dash.no_update
-
+def update_output(time_range, lambda_val, mu_val, s, selected_lines):
     if lambda_val is None or mu_val is None or s is None:
         return "Please enter valid values for lambda, mu, and s."
 
@@ -186,47 +182,6 @@ def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
     graph = dcc.Graph(figure=fig)
     return graph
 
-@app.callback(
-    Output("simulation-results", "children"),
-    [Input("run-button", "n_clicks"),
-     Input("time", "value"),
-     Input("lambda", "value"),
-     Input("mu", "value"),
-     Input("s", "value")]
-)
-def update_simulation_results(n_clicks, simulation_time, lambda_val, mu_val, s):
-    if n_clicks == 0:
-        return dash.no_update
-
-    if lambda_val is None or mu_val is None or s is None:
-        return None
-
-    wait_times, total_times, total_numbers, queue_lengths, server_utilization, _ = mm1_queue_simulation(simulation_time, lambda_val, mu_val, s)
-    
-    avg_queue_length = np.mean(queue_lengths)
-    avg_wait_time = np.mean(wait_times)
-
-    average_combined_time = np.mean(total_times)
-    average_combined_time = np.array(average_combined_time)
-    unique_values, counts = np.unique(average_combined_time, return_counts=True)
-    mode_value = unique_values[np.argmax(counts)]  
-    
-    avg_wait_times = (sum(wait_times) / len(wait_times))
-    
-    avg_server_utilization = np.mean(server_utilization)
-    
-    return html.Div([
-        html.H3("Simulation Results:"),
-        html.Div([
-            html.Div(f"Average Queue Length: {avg_queue_length:.5f}"),
-            html.Div(f"Average Wait Time: {avg_wait_time:.5f}"),
-            html.Div(f"Actual Average Time in System: {average_combined_time:.5f}"),
-            html.Div(f"Mode Average Time in System: {mode_value:.5f}"),
-            html.Div(f"Average Wait Time: {np.mean(avg_wait_times):.5f}"),
-            html.Div(f"Average Server Utilization: {avg_server_utilization:.5f}"),
-        ])
-    ])
-
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8096)
+    app.run_server(debug=True, port=8076)
 # %%

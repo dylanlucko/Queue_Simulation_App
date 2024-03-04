@@ -1,7 +1,4 @@
 
-
-
-
 #%%
 
 
@@ -10,7 +7,7 @@ import simpy
 import numpy as np
 
 import dash
-from dash import dcc, html, Output, Input, State
+from dash import dcc, html, Output, Input
 import plotly.graph_objs as go
 
 
@@ -78,7 +75,10 @@ def mm1_queue_simulation(time, lambda_val, mu_val, s):
     
     return wait_times, total_times, total_numbers, queue_lengths, server_utilization, avg_queue_length  # Return avg_queue_length
 
-# Define mm1_queue_simulation function here
+import dash
+from dash import dcc, html, Input, Output
+import plotly.graph_objs as go
+
 
 app = dash.Dash(__name__)
 server = app.server
@@ -113,21 +113,6 @@ app.layout = html.Div(style={'color': 'white'}, children=[
         ),
     ]),
     html.Div(id="output-graph"),
-    html.Div(id="dropdown-container", children=[
-        dcc.Dropdown(
-            id='line-selection',
-            options=[
-                {'label': 'Wait Times', 'value': 'wait_times'},
-                {'label': 'Total Times', 'value': 'total_times'},
-                {'label': 'Total Numbers', 'value': 'total_numbers'},
-                {'label': 'Queue Lengths', 'value': 'queue_lengths'},
-                {'label': 'Server Utilization', 'value': 'server_utilization'}
-            ],
-            value=['wait_times', 'total_times', 'total_numbers', 'queue_lengths', 'server_utilization'],
-            multi=True
-        )
-    ]),
-    html.Button("Run Simulation", id="run-button", n_clicks=0),
     html.Div(id="simulation-results")
 ])
 
@@ -140,17 +125,12 @@ def update_range_slider_max(simulation_time):
 
 @app.callback(
     Output("output-graph", "children"),
-    [Input("run-button", "n_clicks")],
-    [State("time-range", "value"),
-     State("lambda", "value"),
-     State("mu", "value"),
-     State("s", "value"),
-     State("line-selection", "value")]
+    [Input("time-range", "value"),
+     Input("lambda", "value"),
+     Input("mu", "value"),
+     Input("s", "value")]
 )
-def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
-    if n_clicks == 0:
-        return dash.no_update
-
+def update_output(time_range, lambda_val, mu_val, s):
     if lambda_val is None or mu_val is None or s is None:
         return "Please enter valid values for lambda, mu, and s."
 
@@ -166,17 +146,11 @@ def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
     server_utilization = server_utilization[start_index:end_index]
 
     fig = go.Figure()
-    for line in selected_lines:
-        if line == 'wait_times':
-            fig.add_trace(go.Scatter(x=list(range(len(wait_times))), y=wait_times, mode='lines', name='Wait Times'))
-        elif line == 'total_times':
-            fig.add_trace(go.Scatter(x=list(range(len(total_times))), y=total_times, mode='lines', name='Total Times'))
-        elif line == 'total_numbers':
-            fig.add_trace(go.Scatter(x=list(range(len(total_numbers))), y=total_numbers, mode='lines', name='Total Numbers'))
-        elif line == 'queue_lengths':
-            fig.add_trace(go.Scatter(x=list(range(len(queue_lengths))), y=queue_lengths, mode='lines', name='Queue Lengths'))
-        elif line == 'server_utilization':
-            fig.add_trace(go.Scatter(x=list(range(len(server_utilization))), y=server_utilization, mode='lines', name='Server Utilization'))
+    fig.add_trace(go.Scatter(x=list(range(len(wait_times))), y=wait_times, mode='lines', name='Wait Times'))
+    fig.add_trace(go.Scatter(x=list(range(len(total_times))), y=total_times, mode='lines', name='Total Times'))
+    fig.add_trace(go.Scatter(x=list(range(len(total_numbers))), y=total_numbers, mode='lines', name='Total Numbers'))
+    fig.add_trace(go.Scatter(x=list(range(len(queue_lengths))), y=queue_lengths, mode='lines', name='Queue Lengths'))
+    fig.add_trace(go.Scatter(x=list(range(len(server_utilization))), y=server_utilization, mode='lines', name='Server Utilization'))
     
     # Add a line for average queue length
     fig.add_trace(go.Scatter(x=[0, len(queue_lengths)-1], y=[avg_queue_length, avg_queue_length], mode='lines', name='Avg Queue Length', line=dict(color='orange', dash='dash')))
@@ -188,21 +162,26 @@ def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
 
 @app.callback(
     Output("simulation-results", "children"),
-    [Input("run-button", "n_clicks"),
-     Input("time", "value"),
+    [Input("time-range", "value"),
      Input("lambda", "value"),
      Input("mu", "value"),
      Input("s", "value")]
 )
-def update_simulation_results(n_clicks, simulation_time, lambda_val, mu_val, s):
-    if n_clicks == 0:
-        return dash.no_update
-
+def update_simulation_results(time_range, lambda_val, mu_val, s):
     if lambda_val is None or mu_val is None or s is None:
         return None
 
-    wait_times, total_times, total_numbers, queue_lengths, server_utilization, _ = mm1_queue_simulation(simulation_time, lambda_val, mu_val, s)
-    
+    wait_times, total_times, total_numbers, queue_lengths, server_utilization, avg_queue_length = mm1_queue_simulation(150, lambda_val, mu_val, s)
+
+    # Filter data within the selected time range
+    start_index = time_range[0]
+    end_index = time_range[1] + 1  # Add 1 to include the end index
+    wait_times = wait_times[start_index:end_index]
+    total_times = total_times[start_index:end_index]
+    total_numbers = total_numbers[start_index:end_index]
+    queue_lengths = queue_lengths[start_index:end_index]
+    server_utilization = server_utilization[start_index:end_index]
+
     avg_queue_length = np.mean(queue_lengths)
     avg_wait_time = np.mean(wait_times)
 
@@ -210,23 +189,21 @@ def update_simulation_results(n_clicks, simulation_time, lambda_val, mu_val, s):
     average_combined_time = np.array(average_combined_time)
     unique_values, counts = np.unique(average_combined_time, return_counts=True)
     mode_value = unique_values[np.argmax(counts)]  
-    
+
     avg_wait_times = (sum(wait_times) / len(wait_times))
-    
     avg_server_utilization = np.mean(server_utilization)
-    
+
     return html.Div([
         html.H3("Simulation Results:"),
         html.Div([
             html.Div(f"Average Queue Length: {avg_queue_length:.5f}"),
-            html.Div(f"Average Wait Time: {avg_wait_time:.5f}"),
             html.Div(f"Actual Average Time in System: {average_combined_time:.5f}"),
             html.Div(f"Mode Average Time in System: {mode_value:.5f}"),
-            html.Div(f"Average Wait Time: {np.mean(avg_wait_times):.5f}"),
-            html.Div(f"Average Server Utilization: {avg_server_utilization:.5f}"),
+            html.Div(f"Average Wait Time: {avg_wait_time:.5f}"),
+            html.Div(f"Average Server Utilization: {avg_server_utilization:.5f}")
         ])
     ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8096)
+    app.run_server(debug=True, port=8077)
 # %%
