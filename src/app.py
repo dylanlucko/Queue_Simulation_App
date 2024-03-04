@@ -83,7 +83,7 @@ def mm1_queue_simulation(time, lambda_val, mu_val, s):
 app = dash.Dash(__name__)
 server = app.server
 
-app.layout = html.Div(style={'color': 'white'}, children=[
+app.layout = html.Div(style={'color': 'black'}, children=[
     html.H1("M/M/1 Queue Simulation"),
     html.Div([
         html.Label("Arrival Rate (λ):"),
