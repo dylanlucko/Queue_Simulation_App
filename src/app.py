@@ -89,7 +89,7 @@ import numpy as np
 app = dash.Dash(__name__)
 server = app.server
 
-app.layout = html.Div(style={'color': 'white'}, children=[
+app.layout = html.Div(style={'color': 'black'}, children=[
     html.H1("M/M/1 Queue Simulation"),
     html.Div([
         html.Label("Arrival Rate (λ):"),
