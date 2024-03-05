@@ -7,7 +7,7 @@ import simpy
 import numpy as np
 
 import dash
-from dash import dcc, html, Output, Input
+from dash import dcc, html, Output, Input, State
 import plotly.graph_objs as go
 
 
@@ -207,5 +207,5 @@ def update_output(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
     return graph
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8078)
+    app.run_server(debug=True, port=8095)
 # %%

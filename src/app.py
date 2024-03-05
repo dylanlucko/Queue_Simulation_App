@@ -80,6 +80,7 @@ def mm1_queue_simulation(time, lambda_val, mu_val, s):
 
 # Define mm1_queue_simulation function here
 
+
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
@@ -90,25 +91,26 @@ app = dash.Dash(__name__)
 server = app.server
 
 app.layout = html.Div(style={'color': 'black'}, children=[
-    html.H1("M/M/1 Queue Simulation", style={'text-align': 'center'}),
+    html.H1("M/M/s Queue Simulation", style={'text-align': 'center'}),
     html.Div(style={'display': 'flex'}, children=[
         html.Div(style={'flex': '50%', 'margin-right': '20px'}, children=[
-            html.Div([
-                html.Label("Arrival Rate (λ):"),
+            html.Div(style={'display': 'flex', 'align-items': 'center'}, children=[
+                html.Label("Arrival Rate (λ):", style={'margin-right': '10px'}),  # Adding margin-right for space
                 dcc.Input(id="lambda", type="number", value=40, step=1),
             ]),
-            html.Div([
-                html.Label("Service Rate (μ):"),
+            html.Div(style={'display': 'flex', 'align-items': 'center'}, children=[
+                html.Label("Service Rate (μ):", style={'margin-right': '8px'}),  # Adding margin-right for space
                 dcc.Input(id="mu", type="number", value=60, step=1),
             ]),
-            html.Div([
-                html.Label("Simulation Time:"),
-                dcc.Input(id="time", type="number", value=150, step=1),
-            ]),
-            html.Div([
-                html.Label("Servers:"),
+            html.Div(style={'display': 'flex', 'align-items': 'center'}, children=[
+                html.Label("Servers:", style={'margin-right': '64px'}),  # Adding margin-right for space
                 dcc.Input(id="s", type="number", value=1, step=1),
             ]),
+            html.Div(style={'display': 'flex', 'align-items': 'center'}, children=[
+                html.Label("Simulation Time:", style={'margin-right': '5px'}),  # Adding margin-right for space
+                dcc.Input(id="time", type="number", value=150, step=1),
+            ]),
+            
             html.Div([
                 html.Label("Time Range:"),
                 dcc.RangeSlider(
@@ -191,7 +193,7 @@ def run_simulation(n_clicks, time_range, lambda_val, mu_val, s, selected_lines):
     # Add a line for average queue length
     fig.add_trace(go.Scatter(x=[0, len(queue_lengths)-1], y=[avg_queue_length, avg_queue_length], mode='lines', name='Avg Queue Length', line=dict(color='orange', dash='dash')))
 
-    fig.update_layout(title='Simulation Results', yaxis=dict(title='Queue Lengths', side='left'), yaxis2=dict(title='Total Times', overlaying='y', side='right'), legend=dict(x=0.01, y=0.99, bgcolor='rgba(255, 255, 255, 0.5)', bordercolor='rgba(0, 0, 0, 0.5)'), margin=dict(l=50, r=50, t=50, b=50))  # Define the layout for the secondary y-axis
+    fig.update_layout(title='Simulation Results', yaxis=dict(title='Number of Customers', side='left'), yaxis2=dict(title='Total Times', overlaying='y', side='right'), legend=dict(x=0.01, y=0.99, bgcolor='rgba(255, 255, 255, 0.5)', bordercolor='rgba(0, 0, 0, 0.5)'), margin=dict(l=50, r=50, t=50, b=50))  # Define the layout for the secondary y-axis
     
     graph = dcc.Graph(figure=fig)
     return graph
@@ -238,6 +240,6 @@ def update_simulation_results(n_clicks, simulation_time, lambda_val, mu_val, s):
     ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8103)
+    app.run_server(debug=True, port=8106)
 
 # %%

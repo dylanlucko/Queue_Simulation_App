@@ -80,7 +80,6 @@ def mm1_queue_simulation(time, lambda_val, mu_val, s):
     
     return wait_times, total_times, total_numbers, queue_lengths, server_utilization, avg_queue_length  # Return avg_queue_length
 
-# Define mm1_queue_simulation function here
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
@@ -91,33 +90,39 @@ app = dash.Dash(__name__)
 server = app.server
 
 app.layout = html.Div(style={'color': 'white'}, children=[
-    html.H1("M/M/1 Queue Simulation"),
-    html.Div([
-        html.Label("Arrival Rate (λ):"),
-        dcc.Input(id="lambda", type="number", value=40, step=1),
-    ]),
-    html.Div([
-        html.Label("Service Rate (μ):"),
-        dcc.Input(id="mu", type="number", value=60, step=1),
-    ]),
-    html.Div([
-        html.Label("Simulation Time:"),
-        dcc.Input(id="time", type="number", value=150, step=1),
-    ]),
-    html.Div([
-        html.Label("Servers:"),
-        dcc.Input(id="s", type="number", value=1, step=1),
-    ]),
-    html.Div([
-        html.Label("Time Range:"),
-        dcc.RangeSlider(
-            id='time-range',
-            min=0,
-            max=150,  # Initially set to 150
-            step=1,
-            marks={i: str(i) for i in range(0, 151, 10)},
-            value=[0, 150]
-        ),
+    html.H1("M/M/1 Queue Simulation", style={'text-align': 'center'}),
+    html.Div(style={'display': 'flex'}, children=[
+        html.Div(style={'flex': '50%', 'margin-right': '20px'}, children=[
+            html.Div([
+                html.Label("Arrival Rate (λ):"),
+                dcc.Input(id="lambda", type="number", value=40, step=1),
+            ]),
+            html.Div([
+                html.Label("Service Rate (μ):"),
+                dcc.Input(id="mu", type="number", value=60, step=1),
+            ]),
+            html.Div([
+                html.Label("Simulation Time:"),
+                dcc.Input(id="time", type="number", value=150, step=1),
+            ]),
+            html.Div([
+                html.Label("Servers:"),
+                dcc.Input(id="s", type="number", value=1, step=1),
+            ]),
+            html.Div([
+                html.Label("Time Range:"),
+                dcc.RangeSlider(
+                    id='time-range',
+                    min=0,
+                    max=150,  # Initially set to 150
+                    step=1,
+                    marks={i: str(i) for i in range(0, 151, 10)},
+                    value=[0, 150]
+                ),
+            ]),
+            html.Button("Run Simulation", id="run-button", n_clicks=0),
+        ]),
+        html.Div(style={'flex': '20%', 'margin-top': '-30px'}, id="simulation-results")  # Add margin-top to raise the simulation results
     ]),
     html.Div(id="output-graph"),
     html.Div(id="dropdown-container", children=[
@@ -133,9 +138,7 @@ app.layout = html.Div(style={'color': 'white'}, children=[
             value=['wait_times', 'total_times', 'total_numbers', 'queue_lengths', 'server_utilization'],
             multi=True
         )
-    ]),
-    html.Button("Run Simulation", id="run-button", n_clicks=0),
-    html.Div(id="simulation-results", style={'margin-top': '20px', 'border': '1px solid #ddd', 'padding': '10px'})
+    ])
 ])
 
 @app.callback(
@@ -225,7 +228,7 @@ def update_simulation_results(n_clicks, simulation_time, lambda_val, mu_val, s):
     return html.Div([
         html.H3("Simulation Results:", style={'margin-bottom': '10px', 'border-bottom': '1px solid #ddd'}),
         html.Div([
-            html.Div(f"Average Queue Length: {avg_queue_length:.5f}", style={'margin-bottom': '10px'}),
+            html.Div(f"Average Queue Length: {avg_queue_length:.5f}", style={'margin-bottom': '5px'}),
             html.Div(f"Average Wait Time: {avg_wait_time:.5f}", style={'margin-bottom': '5px'}),
             html.Div(f"Actual Average Time in System: {average_combined_time:.5f}", style={'margin-bottom': '5px'}),
             html.Div(f"Mode Average Time in System: {mode_value:.5f}", style={'margin-bottom': '5px'}),
@@ -235,6 +238,6 @@ def update_simulation_results(n_clicks, simulation_time, lambda_val, mu_val, s):
     ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8101)
+    app.run_server(debug=True, port=8102)
 
 # %%

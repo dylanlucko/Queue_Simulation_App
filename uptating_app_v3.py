@@ -205,5 +205,5 @@ def update_simulation_results(time_range, lambda_val, mu_val, s):
     ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8077)
+    app.run_server(debug=True, port=8093)
 # %%
